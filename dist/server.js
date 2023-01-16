@@ -22,7 +22,6 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const routes_1 = __importDefault(require("./routes"));
 const whatsapp_web_js_1 = require("whatsapp-web.js");
 const Client_1 = require("./models/Client");
-const uuid_1 = require("uuid");
 const connectedClients_1 = require("./utils/connectedClients");
 dotenv_1.default.config();
 const app = (0, express_1.default)();
@@ -39,29 +38,32 @@ mongoose_1.default.connect(String(process.env.DATABASE_URL))
     exports.io.on("connection", (socket) => {
         console.log(`⚡[server]: Socket connection established with SocketID: ${socket.id}`);
     });
+    app.use(express_1.default.json());
+    app.use((0, cors_1.default)());
+    app.use(routes_1.default);
     app.post("/bots", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         try {
             const { restaurant, greetingMessage, confirmMessage } = req.body;
-            const clientId = (0, uuid_1.v4)();
-            yield Client_1.Client.create({
-                _id: clientId,
+            const createdClient = yield Client_1.Client.create({
                 restaurant,
                 greetingMessage,
                 confirmMessage,
             });
+            const clientId = createdClient.id;
             let connected = false;
             const client = new whatsapp_web_js_1.Client({
                 authStrategy: new whatsapp_web_js_1.LocalAuth({ clientId }),
             });
-            client.on("qr", (qr) => __awaiter(void 0, void 0, void 0, function* () {
+            client.on("qr", (qr) => {
+                console.log(qr);
                 setTimeout(() => __awaiter(void 0, void 0, void 0, function* () {
                     if (!connected) {
                         yield Client_1.Client.findByIdAndDelete(clientId);
                         yield client.destroy();
                     }
                 }), 5 * 60 * 1000); // If after 5 minutes the client isn't connected, so the bot will be destroyed and deleted from the database
-                return res.status(201).json({ qr });
-            }));
+                res.status(201).json({ qr });
+            });
             client.on("ready", () => __awaiter(void 0, void 0, void 0, function* () {
                 connectedClients_1.connectedClients.push(clientId);
                 connected = true;
@@ -125,11 +127,9 @@ mongoose_1.default.connect(String(process.env.DATABASE_URL))
             client.initialize();
         }
         catch (error) {
+            console.log(error);
         }
     }));
-    app.use(express_1.default.json());
-    app.use((0, cors_1.default)());
-    app.use(routes_1.default);
     const PORT = process.env.PORT || 6969;
     server.listen(PORT, () => __awaiter(void 0, void 0, void 0, function* () {
         console.log(`⚡[server]: Server is running on port ${PORT}`);
