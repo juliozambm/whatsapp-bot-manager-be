@@ -32,8 +32,9 @@ mongoose.connect(String(process.env.DATABASE_URL))
   .then(() => {
     io.on("connection", (socket) => {
       console.log(`⚡[server]: Socket connection established with SocketID: ${socket.id}`);
+    });
 
-      app.post("/bots", async (req, res) => {
+    app.post("/bots", async (req, res) => {
         try {
           const { restaurant, greetingMessage, confirmMessage } = req.body;
 
@@ -141,7 +142,6 @@ mongoose.connect(String(process.env.DATABASE_URL))
           
         }
       });
-    });
 
     app.use(express.json());
     app.use(cors());
