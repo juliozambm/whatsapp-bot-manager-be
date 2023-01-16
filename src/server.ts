@@ -10,9 +10,7 @@ import router from './routes';
 
 import { Client, NoAuth, LocalAuth } from "whatsapp-web.js";
 import { Client as ClientRepo } from './models/Client';
-import { v4 as uuidv4 } from 'uuid';
 import { connectedClients } from './utils/connectedClients';
-
 
 dotenv.config();
 
@@ -34,18 +32,21 @@ mongoose.connect(String(process.env.DATABASE_URL))
       console.log(`⚡[server]: Socket connection established with SocketID: ${socket.id}`);
     });
 
+    app.use(express.json());
+    app.use(cors());
+    app.use(router);
+
     app.post("/bots", async (req, res) => {
         try {
           const { restaurant, greetingMessage, confirmMessage } = req.body;
 
-          const clientId = uuidv4();
-
-          await ClientRepo.create({
-            _id: clientId,
+          const createdClient = await ClientRepo.create({
             restaurant,
             greetingMessage,
             confirmMessage,
           })
+
+          const clientId = createdClient.id;
 
           let connected = false;
 
@@ -53,7 +54,8 @@ mongoose.connect(String(process.env.DATABASE_URL))
             authStrategy: new LocalAuth({ clientId }),
           });
 
-          client.on("qr", async (qr) => {
+          client.on("qr", (qr) => {
+            console.log(qr);
             setTimeout(async () => {
               if(!connected) {
                 await ClientRepo.findByIdAndDelete(clientId);
@@ -61,7 +63,7 @@ mongoose.connect(String(process.env.DATABASE_URL))
               }
             }, 5 * 60 * 1000) // If after 5 minutes the client isn't connected, so the bot will be destroyed and deleted from the database
 
-            return res.status(201).json({ qr });
+            res.status(201).json({ qr });
           });
 
           client.on("ready", async () => {
@@ -139,13 +141,9 @@ mongoose.connect(String(process.env.DATABASE_URL))
           
           client.initialize();
         } catch (error) {
-          
+          console.log(error);
         }
       });
-
-    app.use(express.json());
-    app.use(cors());
-    app.use(router);
 
     const PORT = process.env.PORT || 6969;
 
