@@ -100,7 +100,7 @@ mongoose.connect(String(process.env.DATABASE_URL))
                 await client.sendMessage(messageTo, message);
 
                 return res.status(200).json({
-                  message: `O pedido foi confirmado com o cliente do número ${customerPhone.replace(/(\d{2})(\d{2})(\d{5})(\d{4})/, "+$1 ($2) $3-$4")}`
+                  message: `A mensagem foi enviada com sucesso para o cliente do número ${customerPhone.replace(/(\d{2})(\d{2})(\d{5})(\d{4})/, "+$1 ($2) $3-$4")}`
                 });
               } catch (error) {
                 return res.status(404).json({
