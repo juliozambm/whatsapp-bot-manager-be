@@ -38,12 +38,11 @@ mongoose.connect(String(process.env.DATABASE_URL))
 
     app.post("/bots", async (req, res) => {
         try {
-          const { restaurant, greetingMessage, confirmMessage } = req.body;
+          const { restaurant, greetingMessage } = req.body;
 
           const createdClient = await ClientRepo.create({
             restaurant,
             greetingMessage,
-            confirmMessage,
           })
 
           const clientId = createdClient.id;
@@ -75,7 +74,7 @@ mongoose.connect(String(process.env.DATABASE_URL))
               phone: client.info.wid.user
             });
 
-            app.post(`/order-confirm/${client.info.wid.user}`, async (req: Request, res: Response) => {
+            app.post(`/send-message/${client.info.wid.user}`, async (req: Request, res: Response) => {
               try {
                 const { customerPhone, message } = req.body;
 
@@ -87,15 +86,15 @@ mongoose.connect(String(process.env.DATABASE_URL))
                   })
                 }
 
-                const data = await ClientRepo.findOne({
-                  phone: client.info.wid.user,
-                });
+                // const data = await ClientRepo.findOne({
+                //   phone: client.info.wid.user,
+                // });
 
-                if(!data) {
-                  return res.status(500).json({
-                    message: 'Ocorreu um erro no servidor e não foi possível confirmar o pedido!'
-                  })
-                }
+                // if(!data) {
+                //   return res.status(500).json({
+                //     message: 'Ocorreu um erro no servidor e não foi possível confirmar o pedido!'
+                //   })
+                // }
 
                 const messageTo = `${customerPhone}@c.us`
                 await client.sendMessage(messageTo, message);
