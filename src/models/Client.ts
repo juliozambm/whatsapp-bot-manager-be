@@ -13,9 +13,5 @@ export const Client = model('Client', new Schema({
       type: String,
       required: true,
     },
-    confirmMessage: {
-      type: String,
-      required: true,
-    },
 }))
 ;
