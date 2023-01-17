@@ -52,7 +52,7 @@ mongoose_1.default.connect(String(process.env.DATABASE_URL))
             const clientId = createdClient.id;
             let connected = false;
             const client = new whatsapp_web_js_1.Client({
-                authStrategy: new whatsapp_web_js_1.LocalAuth({ clientId }),
+                authStrategy: new whatsapp_web_js_1.NoAuth(),
             });
             client.on("qr", (qr) => {
                 console.log(qr);
