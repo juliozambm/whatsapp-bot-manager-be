@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import express, { Express } from "express";
+import express, { Express, Request, Response } from "express";
 import http from 'http';
 import { Server } from "socket.io";
 
@@ -75,9 +75,9 @@ mongoose.connect(String(process.env.DATABASE_URL))
               phone: client.info.wid.user
             });
 
-            app.post(`/order-confirm/${client.info.wid.user}`, async (req, res) => {
+            app.post(`/order-confirm/${client.info.wid.user}`, async (req: Request, res: Response) => {
               try {
-                const { customerPhone } = req.body;
+                const { customerPhone, message } = req.body;
 
                 const numberExists = await client.getNumberId(customerPhone);
 
@@ -98,7 +98,7 @@ mongoose.connect(String(process.env.DATABASE_URL))
                 }
 
                 const messageTo = `${customerPhone}@c.us`
-                await client.sendMessage(messageTo, data?.confirmMessage);
+                await client.sendMessage(messageTo, message);
 
                 return res.status(200).json({
                   message: `O pedido foi confirmado com o cliente do número ${customerPhone.replace(/(\d{2})(\d{2})(\d{5})(\d{4})/, "+$1 ($2) $3-$4")}`
