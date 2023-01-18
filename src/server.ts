@@ -50,7 +50,7 @@ mongoose.connect(String(process.env.DATABASE_URL))
           let connected = false;
 
           const client = new Client({
-            authStrategy: new NoAuth(),
+            authStrategy: new LocalAuth(),
           });
 
           client.on("qr", (qr) => {
