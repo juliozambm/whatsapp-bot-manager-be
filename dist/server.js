@@ -38,24 +38,84 @@ mongoose_1.default.connect(String(process.env.DATABASE_URL))
     exports.io.on("connection", (socket) => {
         console.log(`⚡[server]: Socket connection established with SocketID: ${socket.id}`);
     });
+    ///// RECONNECTION CODE /////
+    (() => __awaiter(void 0, void 0, void 0, function* () {
+        const clients = yield Client_1.Client.find();
+        clients.forEach((data) => {
+            const clientId = data.id;
+            const client = new whatsapp_web_js_1.Client({
+                authStrategy: new whatsapp_web_js_1.LocalAuth({ clientId }),
+            });
+            client.on("qr", (qr) => {
+            });
+            client.on("ready", () => __awaiter(void 0, void 0, void 0, function* () {
+                connectedClients_1.connectedClients.push(clientId);
+                app.post(`/send-message/${client.info.wid.user}`, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+                    try {
+                        const { customerPhone, message } = req.body;
+                        const numberExists = yield client.getNumberId(customerPhone);
+                        if (!numberExists) {
+                            return res.status(404).json({
+                                message: "Esse número não está registrado no WhatsApp"
+                            });
+                        }
+                        const messageTo = `${customerPhone}@c.us`;
+                        yield client.sendMessage(messageTo, message);
+                        return res.status(200).json({
+                            message: `A mensagem foi enviada com sucesso para o cliente do número ${customerPhone.replace(/(\d{2})(\d{2})(\d{5})(\d{4})/, "+$1 ($2) $3-$4")}`
+                        });
+                    }
+                    catch (error) {
+                        return res.status(404).json({
+                            message: "Algo deu errado, cheque o status de conexão dessa sessão"
+                        });
+                    }
+                }));
+                app.delete(`/destroy-client/${clientId}`, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+                    try {
+                        yield client.destroy();
+                        return res.status(200).json({
+                            message: "Sessão do bot foi encerrada com sucesso!"
+                        });
+                    }
+                    catch (error) {
+                        return res.status(404).json({
+                            message: "Algo deu errado, essa sessão já foi encerrada ou o id fornecido não foi encontrado"
+                        });
+                    }
+                }));
+                console.log("Client is ready!");
+            }));
+            let lastCustomerPhone;
+            client.on("message", (message) => __awaiter(void 0, void 0, void 0, function* () {
+                const data = yield Client_1.Client.findOne({
+                    phone: client.info.wid.user,
+                });
+                if (lastCustomerPhone != message.from && data) {
+                    client.sendMessage(message.from, data === null || data === void 0 ? void 0 : data.greetingMessage);
+                    lastCustomerPhone = message.from;
+                }
+            }));
+            client.initialize();
+        });
+    }))();
+    ///// END OF RECONNECTION CODE /////
     app.use(express_1.default.json());
     app.use((0, cors_1.default)());
     app.use(routes_1.default);
     app.post("/bots", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         try {
-            const { restaurant, greetingMessage, confirmMessage } = req.body;
+            const { restaurant, greetingMessage } = req.body;
             const createdClient = yield Client_1.Client.create({
                 restaurant,
                 greetingMessage,
-                confirmMessage,
             });
             const clientId = createdClient.id;
             let connected = false;
             const client = new whatsapp_web_js_1.Client({
-                authStrategy: new whatsapp_web_js_1.NoAuth(),
+                authStrategy: new whatsapp_web_js_1.LocalAuth({ clientId }),
             });
             client.on("qr", (qr) => {
-                console.log(qr);
                 setTimeout(() => __awaiter(void 0, void 0, void 0, function* () {
                     if (!connected) {
                         yield Client_1.Client.findByIdAndDelete(clientId);
@@ -70,27 +130,27 @@ mongoose_1.default.connect(String(process.env.DATABASE_URL))
                 yield Client_1.Client.findByIdAndUpdate(clientId, {
                     phone: client.info.wid.user
                 });
-                app.post(`/order-confirm/${client.info.wid.user}`, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+                app.post(`/send-message/${client.info.wid.user}`, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                     try {
-                        const { customerPhone } = req.body;
+                        const { customerPhone, message } = req.body;
                         const numberExists = yield client.getNumberId(customerPhone);
                         if (!numberExists) {
                             return res.status(404).json({
                                 message: "Esse número não está registrado no WhatsApp"
                             });
                         }
-                        const data = yield Client_1.Client.findOne({
-                            phone: client.info.wid.user,
-                        });
-                        if (!data) {
-                            return res.status(500).json({
-                                message: 'Ocorreu um erro no servidor e não foi possível confirmar o pedido!'
-                            });
-                        }
+                        // const data = await ClientRepo.findOne({
+                        //   phone: client.info.wid.user,
+                        // });
+                        // if(!data) {
+                        //   return res.status(500).json({
+                        //     message: 'Ocorreu um erro no servidor e não foi possível confirmar o pedido!'
+                        //   })
+                        // }
                         const messageTo = `${customerPhone}@c.us`;
-                        yield client.sendMessage(messageTo, data === null || data === void 0 ? void 0 : data.confirmMessage);
+                        yield client.sendMessage(messageTo, message);
                         return res.status(200).json({
-                            message: `O pedido foi confirmado com o cliente do número ${customerPhone.replace(/(\d{2})(\d{2})(\d{5})(\d{4})/, "+$1 ($2) $3-$4")}`
+                            message: `A mensagem foi enviada com sucesso para o cliente do número ${customerPhone.replace(/(\d{2})(\d{2})(\d{5})(\d{4})/, "+$1 ($2) $3-$4")}`
                         });
                     }
                     catch (error) {

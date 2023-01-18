@@ -15,8 +15,4 @@ exports.Client = (0, mongoose_1.model)('Client', new mongoose_1.Schema({
         type: String,
         required: true,
     },
-    confirmMessage: {
-        type: String,
-        required: true,
-    },
 }));
