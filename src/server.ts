@@ -32,6 +32,83 @@ mongoose.connect(String(process.env.DATABASE_URL))
       console.log(`⚡[server]: Socket connection established with SocketID: ${socket.id}`);
     });
 
+    ///// RECONNECTION CODE /////
+
+    (async() => {
+      const clients = await ClientRepo.find();
+
+      clients.forEach((data) => {
+        const clientId = data.id;
+
+        const client = new Client({
+            authStrategy: new LocalAuth({ clientId }),
+          });
+
+          client.on("qr", (qr) => {
+          });
+
+          client.on("ready", async () => {
+            connectedClients.push(clientId);
+
+            app.post(`/send-message/${client.info.wid.user}`, async (req: Request, res: Response) => {
+              try {
+                const { customerPhone, message } = req.body;
+
+                const numberExists = await client.getNumberId(customerPhone);
+
+                if(!numberExists) {
+                  return res.status(404).json({
+                    message: "Esse número não está registrado no WhatsApp"
+                  })
+                }
+
+                const messageTo = `${customerPhone}@c.us`
+                await client.sendMessage(messageTo, message);
+
+                return res.status(200).json({
+                  message: `A mensagem foi enviada com sucesso para o cliente do número ${customerPhone.replace(/(\d{2})(\d{2})(\d{5})(\d{4})/, "+$1 ($2) $3-$4")}`
+                });
+              } catch (error) {
+                return res.status(404).json({
+                  message: "Algo deu errado, cheque o status de conexão dessa sessão"
+                })
+              }
+            });
+
+            app.delete(`/destroy-client/${clientId}`, async (req, res) => {
+              try {
+                await client.destroy();
+                return res.status(200).json({
+                  message: "Sessão do bot foi encerrada com sucesso!"
+                });
+              } catch (error) {
+                return res.status(404).json({
+                  message: "Algo deu errado, essa sessão já foi encerrada ou o id fornecido não foi encontrado"
+                })
+              }
+            })
+
+            console.log("Client is ready!");
+          });
+
+          let lastCustomerPhone: string;
+
+          client.on("message", async (message) => {
+            const data = await ClientRepo.findOne({
+              phone: client.info.wid.user,
+            })
+
+            if(lastCustomerPhone != message.from && data) {
+              client.sendMessage(message.from, data?.greetingMessage);
+              lastCustomerPhone = message.from;
+            }
+          });
+          
+          client.initialize();
+      })
+    })();
+    ///// END OF RECONNECTION CODE /////
+
     app.use(express.json());
     app.use(cors());
     app.use(router);
@@ -50,11 +127,10 @@ mongoose.connect(String(process.env.DATABASE_URL))
           let connected = false;
 
           const client = new Client({
-            authStrategy: new LocalAuth(),
+            authStrategy: new LocalAuth({ clientId }),
           });
 
           client.on("qr", (qr) => {
-            console.log(qr);
             setTimeout(async () => {
               if(!connected) {
                 await ClientRepo.findByIdAndDelete(clientId);
