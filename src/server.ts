@@ -41,6 +41,9 @@ mongoose.connect(String(process.env.DATABASE_URL))
         const clientId = data.id;
 
         const client = new Client({
+            puppeteer: {
+              args: ['--no-sandbox', "--disable-setuid-sandbox"]
+            },
             authStrategy: new LocalAuth({ clientId }),
           });
 
@@ -127,6 +130,9 @@ mongoose.connect(String(process.env.DATABASE_URL))
           let connected = false;
 
           const client = new Client({
+            puppeteer: {
+              args: ['--no-sandbox', "--disable-setuid-sandbox"]
+            },
             authStrategy: new LocalAuth({ clientId }),
           });
 
