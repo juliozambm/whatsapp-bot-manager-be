@@ -4,11 +4,12 @@ import http from 'http';
 import { Server } from "socket.io";
 
 import cors from "cors";
+import { MongoStore } from 'wwebjs-mongo';
 import mongoose from 'mongoose';
 
 import router from './routes';
 
-import { Client, NoAuth, LocalAuth } from "whatsapp-web.js";
+import { Client, NoAuth, LocalAuth, RemoteAuth } from "whatsapp-web.js";
 import { Client as ClientRepo } from './models/Client';
 import { connectedClients } from './utils/connectedClients';
 
@@ -40,15 +41,18 @@ mongoose.connect(String(process.env.DATABASE_URL))
       clients.forEach((data) => {
         const clientId = data.id;
 
+        const store = new MongoStore({ mongoose: mongoose });
         const client = new Client({
             puppeteer: {
               args: ['--no-sandbox', "--disable-setuid-sandbox"]
             },
-            authStrategy: new LocalAuth({ clientId }),
+            authStrategy: new RemoteAuth({
+              store: store,
+              backupSyncIntervalMs: 300000,
+              clientId,
+            }),
           });
 
-          client.on("qr", (qr) => {
-          });
 
           client.on("ready", async () => {
             connectedClients.push(clientId);
@@ -129,12 +133,21 @@ mongoose.connect(String(process.env.DATABASE_URL))
 
           let connected = false;
 
+          const store = new MongoStore({ mongoose: mongoose });
           const client = new Client({
-            puppeteer: {
-              args: ['--no-sandbox', "--disable-setuid-sandbox"]
-            },
-            authStrategy: new LocalAuth({ clientId }),
-          });
+              puppeteer: {
+                args: ['--no-sandbox', "--disable-setuid-sandbox"]
+              },
+              authStrategy: new RemoteAuth({
+                store: store,
+                backupSyncIntervalMs: 300000,
+                clientId
+              }),
+            });
+
+          client.on("remote_session_saved", () => {
+            console.log('Sessão salva');
+          })
 
           client.on("qr", (qr) => {
             setTimeout(async () => {
