@@ -110,7 +110,7 @@ mongoose
             try {
               await client.destroy();
               const updatedConnectedClients = connectedClients.filter(
-                (clientId) => clientId !== clientId
+                (client) => client !== clientId
               );
               updateConnectedClients(updatedConnectedClients);
 
@@ -271,7 +271,7 @@ mongoose
             try {
               await client.destroy();
               const updatedConnectedClients = connectedClients.filter(
-                (clientId) => clientId !== clientId
+                (client) => client !== clientId
               );
               updateConnectedClients(updatedConnectedClients);
 
