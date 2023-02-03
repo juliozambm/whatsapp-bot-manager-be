@@ -10,7 +10,12 @@ import router from "./routes";
 
 import { Client, LocalAuth } from "whatsapp-web.js";
 import { Client as ClientRepo } from "./models/Client";
-import { connectedClients } from "./utils/connectedClients";
+import {
+  connectedClients,
+  updateConnectedClients,
+} from "./utils/connectedClients";
+import { tz } from "moment-timezone";
+import moment from "moment";
 
 dotenv.config();
 
@@ -104,6 +109,11 @@ mongoose
           app.delete(`/destroy-client/${clientId}`, async (req, res) => {
             try {
               await client.destroy();
+              const updatedConnectedClients = connectedClients.filter(
+                (clientId) => clientId !== clientId
+              );
+              updateConnectedClients(updatedConnectedClients);
+
               return res.status(200).json({
                 message: "Sessão do bot foi encerrada com sucesso!",
               });
@@ -118,16 +128,31 @@ mongoose
           console.log("Client is ready!");
         });
 
-        let lastCustomerPhone: string;
+        let sendedTodayTo: string[];
 
         client.on("message", async (message) => {
           const data = await ClientRepo.findOne({
             phone: client.info.wid.user,
           });
 
-          if (lastCustomerPhone != message.from && data) {
+          if (sendedTodayTo.length === 0) {
+            const now = tz("UTC").subtract(3, "hour").toDate().getTime();
+
+            const endDay = moment(tz("UTC").subtract(3, "hour"))
+              .endOf("day")
+              .toDate()
+              .getTime();
+
+            const timeout = endDay - now;
+
+            setTimeout(() => {
+              sendedTodayTo = [];
+            }, timeout);
+          }
+
+          if (!sendedTodayTo.includes(message.from) && data) {
             client.sendMessage(message.from, data?.greetingMessage);
-            lastCustomerPhone = message.from;
+            sendedTodayTo.push(message.from);
           }
         });
 
