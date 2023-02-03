@@ -128,7 +128,7 @@ mongoose
           console.log("Client is ready!");
         });
 
-        let sendedTodayTo: string[];
+        let sendedTodayTo: string[] = [];
 
         client.on("message", async (message) => {
           const data = await ClientRepo.findOne({
@@ -289,7 +289,7 @@ mongoose
           console.log("Client is ready!");
         });
 
-        let sendedTodayTo: string[];
+        let sendedTodayTo: string[] = [];
 
         client.on("message", async (message) => {
           const data = await ClientRepo.findOne({
