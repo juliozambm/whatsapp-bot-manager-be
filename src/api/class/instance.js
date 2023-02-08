@@ -51,8 +51,7 @@ class WhatsAppInstance {
         this.key = key ? key : uuidv4()
         if (body) this.greetingMessage = body.greetingMessage
         if (body) this.restaurant = body.restaurant
-        if (body) this.startTime = body.startTime
-        if (body) this.endTime = body.endTime
+        if (body) this.workTime = body.workTime
         this.instance.customWebhook = this.webhook ? this.webhook : webhook
         this.allowWebhook = config.webhookEnabled
             ? config.webhookEnabled
@@ -95,8 +94,7 @@ class WhatsAppInstance {
             this.authState.saveCreds({
                 restaurant: this.restaurant,
                 greetingMessage: this.greetingMessage,
-                startTime: this.startTime,
-                endTime: this.endTime,
+                workTime: this.workTime,
             })
         )
 
@@ -255,8 +253,17 @@ class WhatsAppInstance {
         // on new mssage
         sock?.ev.on('messages.upsert', async (m) => {
             const from = m.messages[0].key.remoteJid
-            const { greetingMessage, startTime, endTime } =
-                this.authState.state.creds
+            const { greetingMessage, workTime } = this.authState.state.creds
+
+            const todayDayname = moment(tz('UTC').subtract(3, 'hour'))
+                .format('dddd')
+                .toLowerCase()
+
+            const todayWorkTime = workTime.find(
+                (data) => data.day === todayDayname
+            )
+
+            const { startTime, endTime } = todayWorkTime
 
             // LOGIC TO WORK TIME RESTAURANT OPENNED
             const startTimeMinutes =
@@ -447,23 +454,20 @@ class WhatsAppInstance {
             user: this.instance?.online ? this.instance.sock?.user : {},
             greetingMessage: this.authState.state.creds.greetingMessage,
             restaurant: this.authState.state.creds.restaurant,
-            startTime: this.authState.state.creds.startTime,
-            endTime: this.authState.state.creds.endTime,
+            workTime: this.authState.state.creds.workTime,
         }
     }
 
-    async editCreds(restaurant, greetingMessage, startTime, endTime) {
+    async editCreds(restaurant, greetingMessage, workTime) {
         this.authState.saveCreds({
             restaurant,
             greetingMessage,
-            startTime,
-            endTime,
+            workTime,
         })
 
         this.authState.state.creds.greetingMessage = greetingMessage
         this.authState.state.creds.restaurant = restaurant
-        this.authState.state.creds.startTime = startTime
-        this.authState.state.creds.endTime = endTime
+        this.authState.state.creds.workTime = workTime
 
         return {
             instance_key: this.instance.key,
@@ -472,8 +476,7 @@ class WhatsAppInstance {
             user: this.instance?.online ? this.instance.sock?.user : {},
             greetingMessage: this.authState.state.creds.greetingMessage,
             restaurant: this.authState.state.creds.restaurant,
-            startTime: this.authState.state.creds.startTime,
-            endTime: this.authState.state.creds.endTime,
+            workTime: this.authState.state.creds.workTime,
         }
     }
 

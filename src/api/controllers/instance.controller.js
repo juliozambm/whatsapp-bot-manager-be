@@ -7,7 +7,7 @@ const { Session } = require('../class/session')
 exports.init = async (req, res) => {
     // MY CODE
 
-    const { restaurant, greetingMessage, startTime, endTime } = req.body
+    const { restaurant, greetingMessage, workTime } = req.body
 
     if (restaurant === '' || !restaurant) {
         return res.status(400).json({
@@ -22,16 +22,18 @@ exports.init = async (req, res) => {
             message: 'Greeting Message field is missing',
         })
     }
-    if (startTime === '' || !startTime) {
+
+    if (workTime.length < 7) {
         return res.status(400).json({
             error: 'Bad Request',
-            message: 'start time field is missing',
+            message: 'You forgot to send some field in worktime array',
         })
     }
-    if (endTime === '' || !endTime) {
+
+    if (workTime.length > 7) {
         return res.status(400).json({
             error: 'Bad Request',
-            message: 'end time field is missing',
+            message: 'You send too much fields in worktime array',
         })
     }
 
@@ -49,8 +51,7 @@ exports.init = async (req, res) => {
         message: 'Initializing successfully',
         restaurant: data.restaurant,
         greetingMessage: data.greetingMessage,
-        startTime: data.startTime,
-        endTime: data.endTime,
+        worktime: data.workTime,
         key: data.key,
         webhook: {
             enabled: webhook,
@@ -135,7 +136,7 @@ exports.logout = async (req, res) => {
 }
 
 exports.edit = async (req, res) => {
-    const { restaurant, greetingMessage, startTime, endTime } = req.body
+    const { restaurant, greetingMessage, workTime } = req.body
 
     if (restaurant === '' || !restaurant) {
         return res.json({
@@ -144,18 +145,17 @@ exports.edit = async (req, res) => {
             instance_data: null,
         })
     }
-    if (startTime === '' || !startTime) {
-        return res.json({
-            error: true,
-            message: 'start time field is missing',
-            instance_data: null,
+    if (workTime.length < 7) {
+        return res.status(400).json({
+            error: 'Bad Request',
+            message: 'You forgot to send some field in worktime array',
         })
     }
-    if (endTime === '' || !endTime) {
-        return res.json({
-            error: true,
-            message: 'end time field is missing',
-            instance_data: null,
+
+    if (workTime.length > 7) {
+        return res.status(400).json({
+            error: 'Bad Request',
+            message: 'You send too much fields in worktime array',
         })
     }
 
@@ -178,12 +178,7 @@ exports.edit = async (req, res) => {
     const instance = WhatsAppInstances[req.query.key]
     let data
     try {
-        data = await instance.editCreds(
-            restaurant,
-            greetingMessage,
-            startTime,
-            endTime
-        )
+        data = await instance.editCreds(restaurant, greetingMessage, workTime)
     } catch (error) {
         data = {}
     }
