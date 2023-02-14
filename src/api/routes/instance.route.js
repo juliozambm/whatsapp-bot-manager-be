@@ -12,5 +12,6 @@ router.route('/edit').put(controller.edit)
 router.route('/logout').delete(keyVerify, loginVerify, controller.logout)
 router.route('/delete').delete(keyVerify, controller.delete)
 router.route('/list').get(controller.list)
+router.route('/getKey').get(controller.getKey)
 
 module.exports = router

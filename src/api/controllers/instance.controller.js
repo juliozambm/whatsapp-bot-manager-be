@@ -107,6 +107,33 @@ exports.info = async (req, res) => {
     })
 }
 
+exports.getKey = async (req, res) => {
+    const { number } = req.query
+    let instance = Object.keys(WhatsAppInstances).map(async (key) =>
+        WhatsAppInstances[key].getInstanceDetail(key)
+    )
+    let instances = await Promise.all(instance)
+
+    const data = instances.find((value) => {
+        const id = value.user.id.split(':')[0]
+        return id === number
+    })
+
+    if (!data) {
+        return res.status(400).json({
+            error: true,
+            message: `Não foi possível encontrar um bot com esse número`,
+            data: null,
+        })
+    }
+
+    return res.json({
+        error: false,
+        message: `API KEY do restaurante ${data.restaurant}`,
+        data: data.instance_key,
+    })
+}
+
 exports.restore = async (req, res, next) => {
     try {
         const session = new Session()
