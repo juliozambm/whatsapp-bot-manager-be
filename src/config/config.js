@@ -27,7 +27,7 @@ const MONGODB_ENABLED = !!(
 // URL of the Mongo DB
 const MONGODB_URL =
     process.env.MONGODB_URL ||
-    'mongodb+srv://juliozambom:juliozambom@cluster0.7rpijbo.mongodb.net/whatsappbotmanager'
+    'mongodb+srv://user-tolevando:M5WgWn7neAjAaLgl@api-tolevando.jxu1iq4.mongodb.net/whatsapp-api?retryWrites=true&w=majority'
 // Enable or disable webhook globally on project
 const WEBHOOK_ENABLED = !!(
     process.env.WEBHOOK_ENABLED && process.env.WEBHOOK_ENABLED === 'true'
