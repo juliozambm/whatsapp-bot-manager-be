@@ -17,6 +17,7 @@ const downloadMessage = require('../helper/downloadMsg')
 const logger = require('pino')()
 const useMongoDBAuthState = require('../helper/mongoAuthState')
 const moment = require('moment')
+const cron = require('node-cron')
 const { tz } = require('moment-timezone')
 
 class WhatsAppInstance {
@@ -89,6 +90,10 @@ class WhatsAppInstance {
 
     setHandler() {
         const sock = this.instance.sock
+
+        cron.schedule('0 0 * * *', () => {
+            this.sendedTodayTo = []
+        })
         // on credentials update save state
         sock?.ev.on('creds.update', async () =>
             this.authState.saveCreds({
@@ -283,22 +288,6 @@ class WhatsAppInstance {
                 nowInMinutes <= endTimeMinutes
 
             if (isInTime) {
-                // LOGIC TO RESET SEND MESSAGE DATA IN END OF THE DAY
-                if (this.sendedTodayTo.length === 0) {
-                    const now = tz('UTC').subtract(3, 'hour').toDate().getTime()
-
-                    const endDay = moment(tz('UTC').subtract(3, 'hour'))
-                        .endOf('day')
-                        .toDate()
-                        .getTime()
-
-                    const timeout = endDay - now
-
-                    setTimeout(() => {
-                        this.sendedTodayTo = []
-                    }, timeout)
-                }
-
                 // LOGIC TO SEND ONE MESSAGE FOR USER PER DAY AND DON'T SEND TO GROUPS OR FOR YOURSELF
                 if (
                     from.includes('@s.whatsapp.net') &&
