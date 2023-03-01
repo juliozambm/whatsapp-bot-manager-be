@@ -270,6 +270,11 @@ class WhatsAppInstance {
 
             const { startTime, endTime } = todayWorkTime
 
+            console.log({
+                todayDayname,
+                todayWorkTime,
+            })
+
             // LOGIC TO WORK TIME RESTAURANT OPENNED
             const startTimeMinutes =
                 Number(startTime.split(':')[0]) * 60 +
@@ -282,6 +287,11 @@ class WhatsAppInstance {
             const nowInMinutes =
                 tz('UTC').toDate().getMinutes() +
                 tz('UTC').toDate().getHours() * 60
+
+            console.log({
+                hour: tz('UTC').toDate().getHours(),
+                minutes: tz('UTC').toDate().getMinutes(),
+            })
 
             const isInTime =
                 nowInMinutes >= startTimeMinutes &&
