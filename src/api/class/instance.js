@@ -95,11 +95,11 @@ class WhatsAppInstance {
             this.sendedTodayTo = []
         })
 
-        cron.schedule('30 10 * * *', () => {
+        cron.schedule('32 10 * * *', () => {
             console.log('hora 10')
             this.sendedTodayTo = []
         })
-        cron.schedule('30 13 * * *', () => {
+        cron.schedule('32 13 * * *', () => {
             console.log('hora 13')
             this.sendedTodayTo = []
         })
