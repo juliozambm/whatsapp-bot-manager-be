@@ -91,18 +91,10 @@ class WhatsAppInstance {
     setHandler() {
         const sock = this.instance.sock
 
-        cron.schedule('0 0 * * *', () => {
+        cron.schedule('0 3 * * *', () => {
             this.sendedTodayTo = []
         })
 
-        cron.schedule('32 10 * * *', () => {
-            console.log('hora 10')
-            this.sendedTodayTo = []
-        })
-        cron.schedule('32 13 * * *', () => {
-            console.log('hora 13')
-            this.sendedTodayTo = []
-        })
         // on credentials update save state
         sock?.ev.on('creds.update', async () =>
             this.authState.saveCreds({
@@ -279,14 +271,6 @@ class WhatsAppInstance {
 
             const { startTime, endTime } = todayWorkTime
 
-            console.log({
-                todayDayname,
-                todayDayHourDebug: moment(
-                    tz('UTC').subtract(3, 'hour')
-                ).hours(),
-                todayWorkTime,
-            })
-
             // LOGIC TO WORK TIME RESTAURANT OPENNED
             const startTimeMinutes =
                 Number(startTime.split(':')[0]) * 60 +
@@ -298,12 +282,7 @@ class WhatsAppInstance {
 
             const nowInMinutes =
                 tz('UTC').toDate().getMinutes() +
-                tz('UTC').toDate().getHours() * 60
-
-            console.log({
-                hour: tz('UTC').subtract(3, 'hour').toDate().getHours(),
-                minutes: tz('UTC').toDate().getMinutes(),
-            })
+                tz('UTC').subtract(3, 'hour').toDate().getHours() * 60
 
             const isInTime =
                 nowInMinutes >= startTimeMinutes &&
