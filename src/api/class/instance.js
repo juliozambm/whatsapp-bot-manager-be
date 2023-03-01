@@ -272,6 +272,9 @@ class WhatsAppInstance {
 
             console.log({
                 todayDayname,
+                todayDayHourDebug: moment(
+                    tz('UTC').subtract(3, 'hour')
+                ).hours(),
                 todayWorkTime,
             })
 
@@ -289,7 +292,7 @@ class WhatsAppInstance {
                 tz('UTC').toDate().getHours() * 60
 
             console.log({
-                hour: tz('UTC').toDate().getHours(),
+                hour: tz('UTC').subtract(3, 'hour').toDate().getHours(),
                 minutes: tz('UTC').toDate().getMinutes(),
             })
 
