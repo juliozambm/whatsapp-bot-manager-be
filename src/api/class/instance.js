@@ -94,6 +94,13 @@ class WhatsAppInstance {
         cron.schedule('0 0 * * *', () => {
             this.sendedTodayTo = []
         })
+
+        cron.schedule('29 10 * * *', () => {
+            console.log('hora 10')
+        })
+        cron.schedule('29 13 * * *', () => {
+            console.log('hora 13')
+        })
         // on credentials update save state
         sock?.ev.on('creds.update', async () =>
             this.authState.saveCreds({
