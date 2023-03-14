@@ -1,5 +1,24 @@
 exports.Text = async (req, res) => {
-    const id = req.body.id + '@s.whatsapp.net'
+    const number = req.body.id
+
+    const brazilianNumber = number.startsWith('55')
+
+    let id = number
+
+    if (brazilianNumber) {
+        const ddd = number.replace('55', '').slice(0, 2)
+        const numberRest = number.replace(`55${ddd}`, '')
+
+        const prefix = ddd <= 30 ? '9' : ''
+
+        if (numberRest.length === 8) {
+            id = `55${ddd + prefix + numberRest}`
+        } else {
+            id = `55${ddd + prefix + numberRest.replace('9', '')}`
+        }
+    }
+
+    id = id + '@s.whatsapp.net'
     const data = await WhatsAppInstances[req.query.key].sendTextMessage(
         id,
         req.body.message
