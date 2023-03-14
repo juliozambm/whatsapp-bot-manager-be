@@ -19,10 +19,30 @@ exports.Text = async (req, res) => {
     }
 
     id = id + '@s.whatsapp.net'
-    const data = await WhatsAppInstances[req.query.key].sendTextMessage(
-        id,
-        req.body.message
-    )
+    let data
+
+    try {
+        data = await WhatsAppInstances[req.query.key].sendTextMessage(
+            id,
+            req.body.message
+        )
+    } catch {
+        const ddd = number.replace('55', '').slice(0, 2)
+        const numberRest = number.replace(`55${ddd}`, '')
+
+        const prefix = ddd <= 30 ? '' : '9'
+
+        if (numberRest.length === 8) {
+            id = `55${ddd + prefix + numberRest}`
+        } else {
+            id = `55${ddd + prefix + numberRest.replace('9', '')}`
+        }
+
+        data = await WhatsAppInstances[req.query.key].sendTextMessage(
+            id,
+            req.body.message
+        )
+    }
     return res.status(201).json({ error: false, data: data })
 }
 
