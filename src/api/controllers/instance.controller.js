@@ -110,14 +110,8 @@ exports.info = async (req, res) => {
 exports.getKey = async (req, res) => {
     const { number } = req.query
 
-    console.log(
-        Object.keys(WhatsAppInstances).map(async (key) =>
-            WhatsAppInstances[key].getInstanceDetail(key)
-        )
-    )
-
-    let instance = Object.keys(WhatsAppInstances).map(async (key) =>
-        WhatsAppInstances[key].getInstanceDetail(key)
+    let instance = Object.keys(WhatsAppInstances).map(
+        async (key) => await WhatsAppInstances[key].getInstanceDetail(key)
     )
     let instances = await Promise.all(instance)
 
