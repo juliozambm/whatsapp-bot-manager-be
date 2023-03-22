@@ -115,7 +115,9 @@ exports.getKey = async (req, res) => {
     )
     let instances = await Promise.all(instance)
 
-    const data = instances.find((value) => {
+    const data = await instances.find((value) => {
+        console.log(value)
+
         const id = value.user.id.split(':')[0]
         return id === number
     })
