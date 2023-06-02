@@ -110,6 +110,8 @@ exports.info = async (req, res) => {
 exports.getKey = async (req, res) => {
     const { number } = req.query
 
+    console.log(`[GET-KEY] Trying to get key for number ${number}`) 
+
     let instance = Object.keys(WhatsAppInstances).map(
         async (key) => await WhatsAppInstances[key].getInstanceDetail(key)
     )
@@ -118,12 +120,12 @@ exports.getKey = async (req, res) => {
     const data = await instances.find((value) => {
         console.log(value)
 
-        const id = value.user.id.split(':')[0]
+        const id = value?.user?.id?.split(':')[0]
         return id === number
     })
 
     if (!data) {
-        return res.status(400).json({
+        return res.status(400).json({  
             error: true,
             message: `Não foi possível encontrar um bot com esse número`,
             data: null,

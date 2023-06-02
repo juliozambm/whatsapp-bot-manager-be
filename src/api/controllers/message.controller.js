@@ -1,7 +1,9 @@
 exports.Text = async (req, res) => {
     const number = req.body.id
 
-    const brazilianNumber = number.startsWith('55')
+    console.log(`[SEND-MESSAGE Trying to send message to number ${number}`) 
+
+    const brazilianNumber = number.startsWith('55') 
 
     let id = number
 
@@ -43,6 +45,8 @@ exports.Text = async (req, res) => {
             req.body.message
         )
     }
+
+    console.log(`[SEND-MESSAGE Message sent to ${data?.key?.remoteJid}`);
     return res.status(201).json({ error: false, data: data })
 }
 
