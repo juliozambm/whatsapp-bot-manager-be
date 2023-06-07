@@ -1,5 +1,7 @@
 exports.Text = async (req, res) => {
     console.log("bateu aqui no inicio");
+    console.log(`key enviada ${req.query.key}`);
+    
     const number = req.body.id
 
     console.log(`[SEND-MESSAGE Trying to send message to number ${number}`) 
